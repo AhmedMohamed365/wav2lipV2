@@ -268,7 +268,7 @@ def train(device, model, disc, train_data_loader, test_data_loader, optimizer, d
             alpha = torch.rand(1)*torch.ones(gt.size(0), 1)
             alpha = alpha.expand(gt.size(0), int(gt.nelement()/gt.size(0))).contiguous().view(gt.size(0), 3, 5, 288, 288).to(device)
             interpolates = alpha * gt + ((1 - alpha) * fake_img)
-            interpolates = interpolates.to(device)
+            interpolates = interpolates.half().to(device)
             interpolates = autograd.Variable(interpolates, requires_grad=True)
 
             disc_interpolates = disc(interpolates)

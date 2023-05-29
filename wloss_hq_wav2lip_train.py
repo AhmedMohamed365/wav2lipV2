@@ -222,10 +222,10 @@ def train(device, model, disc, train_data_loader, test_data_loader, optimizer, d
             disc.train()
             model.train()
 
-            x = x.half().to(device)
-            mel = mel.half().to(device)
-            indiv_mels = indiv_mels.half().to(device)
-            gt = gt.half().to(device)
+            x = x.to(device)
+            mel = mel.to(device)
+            indiv_mels = indiv_mels.to(device)
+            gt = gt.to(device)
 
             ### Train generator now. Remove ALL grads. 
             optimizer.zero_grad()
@@ -268,7 +268,7 @@ def train(device, model, disc, train_data_loader, test_data_loader, optimizer, d
             alpha = torch.rand(1)*torch.ones(gt.size(0), 1)
             alpha = alpha.expand(gt.size(0), int(gt.nelement()/gt.size(0))).contiguous().view(gt.size(0), 3, 5, 288, 288).to(device)
             interpolates = alpha * gt + ((1 - alpha) * fake_img)
-            interpolates = interpolates.half().to(device)
+            interpolates = interpolates.to(device)
             interpolates = autograd.Variable(interpolates, requires_grad=True)
 
             disc_interpolates = disc(interpolates)
@@ -429,18 +429,18 @@ if __name__ == "__main__":
     test_dataset = Dataset('val')
 
     train_data_loader = data_utils.DataLoader(
-        train_dataset, batch_size=8, shuffle=True,
+        train_dataset, batch_size=4, shuffle=True,
         num_workers=2)
 
     test_data_loader = data_utils.DataLoader(
-        test_dataset, batch_size=8,
+        test_dataset, batch_size=1,
         num_workers=2)
 
     device = torch.device("cuda" if use_cuda else "cpu")
 
      # Model
-    model = Wav2Lip().half().to(device)
-    disc = Wav2Lip_disc_qual().half().to(device)
+    model = Wav2Lip().to(device)
+    disc = Wav2Lip_disc_qual().to(device)
 
     print('total trainable params {}'.format(sum(p.numel() for p in model.parameters() if p.requires_grad)))
     print('total DISC trainable params {}'.format(sum(p.numel() for p in disc.parameters() if p.requires_grad)))

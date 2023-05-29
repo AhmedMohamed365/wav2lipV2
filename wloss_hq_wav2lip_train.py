@@ -215,11 +215,10 @@ def get_sync_loss(mel, g):
 
 def train(rank,worldsize,device, model, disc, train_data_loader, test_data_loader, optimizer, disc_optimizer,
           checkpoint_dir=None, checkpoint_interval=None, nepochs=None):
-    torch.manual_seed(0)
+    
     global global_step, global_epoch
     resumed_step = global_step
-    device = torch.device(f'cuda:{rank}')
-    dist.init_process_group(backend='nccl', init_method='env://', world_size=world_size, rank=rank)
+    
     model = nn.DataParallel(model)
     while global_epoch < nepochs:
         print('Starting Epoch: {}'.format(global_epoch))
@@ -476,9 +475,12 @@ if __name__ == "__main__":
 
 
 
-    num_gpus = 2
+    # num_gpus = 2
 
-    # Spawn the training processes
-    mp.spawn(train, args =(device, model, disc, train_data_loader, test_data_loader, optimizer, disc_optimizer,checkpoint_dir=checkpoint_dir,checkpoint_interval=hparams.checkpoint_interval,nepochs=hparams.nepochs), nprocs=num_gpus)
+    # # Spawn the training processes
+    # mp.spawn(train, args=(num_gpus,), nprocs=num_gpus)
     # Train!
-    #train()
+    train(device, model, disc, train_data_loader, test_data_loader, optimizer, disc_optimizer,
+              checkpoint_dir=checkpoint_dir,
+              checkpoint_interval=hparams.checkpoint_interval,
+              nepochs=hparams.nepochs)

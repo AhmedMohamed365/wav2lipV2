@@ -429,12 +429,12 @@ if __name__ == "__main__":
     test_dataset = Dataset('val')
 
     train_data_loader = data_utils.DataLoader(
-        train_dataset, batch_size=hparams.batch_size, shuffle=True,
-        num_workers=hparams.num_workers)
+        train_dataset, batch_size=16, shuffle=True,
+        num_workers=2)
 
     test_data_loader = data_utils.DataLoader(
-        test_dataset, batch_size=hparams.batch_size,
-        num_workers=4)
+        test_dataset, batch_size=16,
+        num_workers=2)
 
     device = torch.device("cuda" if use_cuda else "cpu")
 

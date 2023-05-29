@@ -19,6 +19,12 @@ import torch.multiprocessing as mp
 import torch.distributed as dist
 import os, random, cv2, argparse
 from hparams import hparams, get_image_list
+import torch.optim as optim
+import torch.distributed as dist
+import torch.multiprocessing as mp
+import torch.utils.data
+import torch.utils.data.distributed
+
 
 parser = argparse.ArgumentParser(description='Code to train the Wav2Lip model WITH the visual quality discriminator')
 
@@ -207,11 +213,14 @@ def get_sync_loss(mel, g):
     y = torch.ones(g.size(0), 1).float().to(device)
     return cosine_loss(a, v, y)
 
-def train(device, model, disc, train_data_loader, test_data_loader, optimizer, disc_optimizer,
+def train(rank,worldsize,device, model, disc, train_data_loader, test_data_loader, optimizer, disc_optimizer,
           checkpoint_dir=None, checkpoint_interval=None, nepochs=None):
+    torch.manual_seed(0)
     global global_step, global_epoch
     resumed_step = global_step
-
+    device = torch.device(f'cuda:{rank}')
+    dist.init_process_group(backend='nccl', init_method='env://', world_size=world_size, rank=rank)
+    model = nn.DataParallel(model)
     while global_epoch < nepochs:
         print('Starting Epoch: {}'.format(global_epoch))
         running_sync_loss, running_l1_loss, disc_loss, running_perceptual_loss = 0., 0., 0., 0.
@@ -323,6 +332,8 @@ def train(device, model, disc, train_data_loader, test_data_loader, optimizer, d
                                                                                         running_disc_real_loss / (step + 1)))
 
         global_epoch += 1
+    
+    dist.destroy_process_group()
 
 def eval_model(test_data_loader, global_step, device, model, disc):
     eval_steps = 300
@@ -463,8 +474,14 @@ if __name__ == "__main__":
     if not os.path.exists(checkpoint_dir):
         os.mkdir(checkpoint_dir)
 
-    # Train!
-    train(device, model, disc, train_data_loader, test_data_loader, optimizer, disc_optimizer,
+
+
+    num_gpus = 2
+
+    # Spawn the training processes
+    mp.spawn(train(device, model, disc, train_data_loader, test_data_loader, optimizer, disc_optimizer,
               checkpoint_dir=checkpoint_dir,
               checkpoint_interval=hparams.checkpoint_interval,
-              nepochs=hparams.nepochs)
+              nepochs=hparams.nepochs) , args=(num_gpus,), nprocs=num_gpus)
+    # Train!
+    

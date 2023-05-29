@@ -479,9 +479,6 @@ if __name__ == "__main__":
     num_gpus = 2
 
     # Spawn the training processes
-    mp.spawn(train(device, model, disc, train_data_loader, test_data_loader, optimizer, disc_optimizer,
-              checkpoint_dir=checkpoint_dir,
-              checkpoint_interval=hparams.checkpoint_interval,
-              nepochs=hparams.nepochs) , args=(num_gpus,), nprocs=num_gpus)
+    mp.spawn(train, args =(device, model, disc, train_data_loader, test_data_loader, optimizer, disc_optimizer,checkpoint_dir=checkpoint_dir,checkpoint_interval=hparams.checkpoint_interval,nepochs=hparams.nepochs), nprocs=num_gpus)
     # Train!
-    
+    #train()

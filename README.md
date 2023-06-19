@@ -1,5 +1,6 @@
 # This is a 288x288 wav2lip model version.
 The original repo: https://github.com/Rudrabha/Wav2Lip
+the repo I forked : https://github.com/primepake/wav2lip_288x288
 Some Features I will implement here
 - [x] input size 288x288
 - [x] PRelu
